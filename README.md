@@ -1,29 +1,102 @@
 # 🔐 Auto Backup & Email Notification on Ubuntu
 
-Tự động backup thư mục mỗi ngày và gửi email thông báo thành công/thất bại về Gmail, sử dụng `cron`, `tar`, và `msmtp`.
+Automatically backup a folder daily and send email notifications about success or failure to your Gmail account, using `cron`, `tar`, and `msmtp`.
 
-## 📦 Tính năng
-- Tự động nén thư mục vào file `.tar.gz`
-- Lưu file vào ổ rời hoặc thư mục riêng
-- Gửi thông báo Gmail sau mỗi lần backup
-- Chạy tự động mỗi ngày bằng `cron`
-- Hỗ trợ Gmail SMTP bảo mật (không cần Postfix)
+## 📦 Features
 
----
-
-## 🧪 Yêu cầu hệ thống
-
-- Ubuntu (tested on 22.04+)
-- Đã cài `msmtp`, `mailutils`, `cron`
-- Có Gmail và mật khẩu ứng dụng
+* Automatically compress a folder into `.tar.gz`
+* Save backups to external drives or custom folders
+* Send Gmail notifications after each backup
+* Schedule daily backups using `cron`
+* Secure Gmail SMTP support (no need for Postfix)
 
 ---
 
-## 🛠 Cài đặt
+## 🧪 System Requirements
 
-### 1. Cài các công cụ cần thiết
+* Ubuntu (tested on 22.04+)
+* Installed packages: `msmtp`, `mailutils`, `cron`
+* A Gmail account with an App Password
+
+---
+
+## 🛠 Setup Instructions
+
+### 1. Install required packages
 
 ```bash
 sudo apt update
 sudo apt install msmtp msmtp-mta mailutils cron
+```
+
+> If prompted about "AppArmor" or "Postfix config", select **No**
+
+---
+
+### 2. Generate Gmail App Password
+
+Go to: [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+→ Create a 16-character app password → Use it in the next step
+
+---
+
+### 3. Configure Gmail SMTP (`~/.msmtprc`)
+
+Add the following to the file `~/.msmtprc`:
+
+```ini
+defaults
+auth on
+tls on
+tls_trust_file /etc/ssl/certs/ca-certificates.crt
+logfile ~/.msmtp.log
+
+account gmail
+host smtp.gmail.com
+port 587
+from your_email@gmail.com
+user your_email@gmail.com
+password your_app_password
+
+account default : gmail
+```
+
+> Replace `your_email@gmail.com` with your real Gmail
+> Replace `your_app_password` with the 16-character app password you created
+
+Then:
+
+```bash
+chmod 600 ~/.msmtprc
+```
+
+---
+
+### 4. Run a test backup
+
+```bash
+chmod +x backup_daily.sh
+./backup_daily.sh
+```
+
+---
+
+### 5. Set up daily cron job
+
+Open crontab:
+
+```bash
+crontab -e
+```
+
+Add this line to run the backup daily at 3:00 AM:
+
+```bash
+0 3 * * * /your_folder/backup_daily.sh
+```
+
+> Replace `/your_folder/backup_daily.sh` with the full path to your script
+
+---
+
 
